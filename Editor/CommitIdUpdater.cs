@@ -1,6 +1,6 @@
 using UnityEditor;
 
-namespace Game.Scripts.GitMenu
+namespace UnityTortoiseGitMenu.Editor
 {
 	sealed class CommitIdUpdater : Updater
 	{

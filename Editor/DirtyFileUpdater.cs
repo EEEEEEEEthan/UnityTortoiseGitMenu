@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Scripts.GitMenu
+namespace UnityTortoiseGitMenu.Editor
 {
 	sealed class DirtyFileUpdater : Updater
 	{

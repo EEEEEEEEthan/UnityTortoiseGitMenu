@@ -5,7 +5,7 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Scripts.GitMenu
+namespace UnityTortoiseGitMenu.Editor
 {
 	sealed class CommitInfoUpdater : Updater
 	{

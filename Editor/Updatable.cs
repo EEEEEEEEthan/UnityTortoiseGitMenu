@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace Game.Scripts.GitMenu
+namespace UnityTortoiseGitMenu.Editor
 {
 	abstract class Updater
 	{

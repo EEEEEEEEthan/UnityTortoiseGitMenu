@@ -5,7 +5,7 @@
   "description": "Asset item menu for tortoise git",
   "unity": "2023.2",
   "unityRelease": "0b5",
-  "dependencies": { },
+  "dependencies": {},
   "keywords": [
     "tortoise",
     "git"

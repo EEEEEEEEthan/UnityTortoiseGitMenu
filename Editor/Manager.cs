@@ -3,7 +3,7 @@ using System.Threading;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Scripts.GitMenu
+namespace UnityTortoiseGitMenu.Editor
 {
 	static class Manager
 	{

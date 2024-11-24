@@ -1,0 +1,20 @@
+{
+  "name": "com.unity.tortoisegitmenu",
+  "version": "1.0.0",
+  "displayName": "TortoiseGitMenu",
+  "description": "Asset item menu for tortoise git",
+  "unity": "2023.2",
+  "unityRelease": "0b5",
+  "dependencies": {
+    "com.unity.some-package": "1.0.0",
+    "com.unity.other-package": "2.0.0"
+ },
+ "keywords": [
+    "tortoise",
+    "git",
+  ],
+  "author": {
+    "name": "Ethan",
+    "email": "tyx1993@live.cn",
+  }
+}

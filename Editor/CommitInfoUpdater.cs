@@ -62,8 +62,6 @@ namespace Game.Scripts.GitMenu
 			try
 			{
 				Execute("git.exe", command, out var result);
-				Debug.Log(result);
-				var bytes = Encoding.UTF8.GetBytes(result);
 				var parts = result.Split('|');
 				return new(parts[0], parts[1], DateTime.Parse(parts[2]), parts[3]);
 			}

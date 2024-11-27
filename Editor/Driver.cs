@@ -101,7 +101,6 @@ namespace UnityTortoiseGitMenu.Editor
 		{
 			string root;
 			var paths = new HashSet<string>();
-			// 先检查applicationPath是不是git目录
 			Command.Execute("git", "rev-parse --show-toplevel", out var toplevel);
 			toplevel = toplevel.Trim();
 			if (string.IsNullOrEmpty(toplevel))
@@ -113,12 +112,12 @@ namespace UnityTortoiseGitMenu.Editor
 				root = toplevel;
 				paths.Add(root);
 			}
-			// 递归查找git目录
 			var directory = new DirectoryInfo(root);
 			foreach (var info in directory.GetDirectories(".git", SearchOption.AllDirectories))
 				if (info.Parent != null)
 					paths.Add(info.Parent.FullName.Replace("\\", "/"));
 			MainThreadRawPaths = string.Join(";", paths);
+			Debug.Log($"Scanned git repositories:\n{string.Join("\n", paths)}");
 		}
 	}
 }

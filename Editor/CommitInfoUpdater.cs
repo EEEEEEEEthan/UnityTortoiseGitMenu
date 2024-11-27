@@ -154,28 +154,46 @@ namespace UnityTortoiseGitMenu.Editor
 				styleLastCommit ??= new GUIStyle
 					{ normal = new GUIStyleState { textColor = Color.gray }, alignment = TextAnchor.UpperRight };
 				var commit = GetCommitInfo(path);
+				builder.Clear();
 				if (commit.time != default)
 				{
-					builder.Clear();
-					if (selectionRect.width > 200)
-						builder.Append(commit.author);
-					if (selectionRect.width > 500) builder.Append(", " + commit.message.Replace("\n", " "));
-					if (selectionRect.width > 300)
+					// 计算author长度
+					string timeText;
+					var time = commit.time;
+					var span = DateTime.Now - time;
+					if (span.TotalMinutes < 1)
+						timeText = $"{(int)span.TotalSeconds} seconds ago";
+					else if (span.TotalHours < 1)
+						timeText = $"{(int)span.TotalMinutes} minutes ago";
+					else if (span.TotalDays < 1)
+						timeText = $"{(int)span.TotalHours} hours ago";
+					else if (span.TotalDays < 7)
+						timeText = $"{(int)span.TotalDays} days ago";
+					else
+						timeText = time.ToString("yyyy-MM-dd");
+					var timeLength = GUI.skin.label.CalcSize(new GUIContent(timeText)).x;
+					var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(path);
+					var fileLength = GUI.skin.label.CalcSize(new GUIContent(fileNameWithoutExtension)).x;
+					if (selectionRect.width - fileLength > timeLength)
 					{
-						var time = commit.time;
-						var span = DateTime.Now - time;
-						string timeText;
-						if (span.TotalMinutes < 1)
-							timeText = $", {(int)span.TotalSeconds} seconds ago";
-						else if (span.TotalHours < 1)
-							timeText = $", {(int)span.TotalMinutes} minutes ago";
-						else if (span.TotalDays < 1)
-							timeText = $", {(int)span.TotalHours} hours ago";
-						else if (span.TotalDays < 7)
-							timeText = $", {(int)span.TotalDays} days ago";
-						else
-							timeText = ", " + time.ToString("yyyy-MM-dd");
 						builder.Append(timeText);
+						var authorText = commit.author + ", ";
+						var authorLength = GUI.skin.label.CalcSize(new GUIContent(authorText)).x;
+						if (selectionRect.width - fileLength > timeLength + authorLength)
+						{
+							builder.Insert(0, authorText);
+							var commitText = commit.message.Replace("\n", " ") + ", ";
+							// 把commit多余的部分变成省略号
+							var maxLength = selectionRect.width - fileLength - timeLength - authorLength;
+							var commitLength = GUI.skin.label.CalcSize(new GUIContent(commitText)).x;
+							var cnt = commitText.Length;
+							while (commitLength > maxLength && cnt > 0)
+							{
+								commitText = commitText.Substring(0, cnt /= 2) + "..., ";
+								commitLength = GUI.skin.label.CalcSize(new GUIContent(commitText)).x;
+							}
+							builder.Insert(0, commitText);
+						}
 					}
 					GUI.Label(selectionRect, builder.ToString(), styleLastCommit);
 				}

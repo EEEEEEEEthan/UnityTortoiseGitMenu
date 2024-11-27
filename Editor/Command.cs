@@ -20,7 +20,7 @@ namespace UnityTortoiseGitMenu.Editor
 
 		public static void Execute(string fileName, string command, out string output)
 		{
-			Debug.Log($"Executing: {fileName} {command}");
+			//Debug.Log($"Executing: {fileName} {command}");
 			var proc = new ProcessStartInfo
 			{
 				FileName = fileName,
@@ -37,7 +37,7 @@ namespace UnityTortoiseGitMenu.Editor
 				var reader = process.StandardOutput;
 				output = reader.ReadToEnd();
 				process.WaitForExit();
-				Debug.Log($"Output: {output}");
+				//Debug.Log($"Output: {output}");
 			}
 			else
 			{

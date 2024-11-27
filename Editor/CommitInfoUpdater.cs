@@ -1,111 +1,54 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
 
 namespace UnityTortoiseGitMenu.Editor
 {
-	sealed class CommitInfoUpdater : Updater
+	internal class CommitInfoUpdater
 	{
-		readonly struct CommitInfo
-		{
-			public readonly string commitId;
-			public readonly string author;
-			public readonly DateTime time;
-			public readonly string message;
-
-			public readonly bool available;
-
-			public CommitInfo(string commitId, string author, DateTime time, string message)
-			{
-				this.commitId = commitId;
-				this.author = author;
-				this.time = time;
-				this.message = message;
-				available = !(commitId == default || author == default || time == default || message == default);
-			}
-
-			public CommitInfo(BinaryReader reader)
-			{
-				available = reader.ReadBoolean();
-				if (!available)
-				{
-					commitId = default;
-					author = default;
-					time = default;
-					message = default;
-				}
-				commitId = reader.ReadString();
-				author = reader.ReadString();
-				time = new(reader.ReadInt64());
-				message = reader.ReadString();
-			}
-
-			public void Serialize(BinaryWriter writer)
-			{
-				writer.Write(available);
-				if (!available) return;
-				writer.Write(commitId);
-				writer.Write(author);
-				writer.Write(time.Ticks);
-				writer.Write(message);
-			}
-		}
-
 		static string cacheFile;
+		public string commitId;
 
-		static CommitInfo Query(string fullPath)
-		{
-			var command = $"log -1 --pretty=format:\"%H|%an|%ad|%s\" --date=iso \"{fullPath}\"";
-			try
-			{
-				Execute("git.exe", command, out var result);
-				var parts = result.Split('|');
-				return new(parts[0], parts[1], DateTime.Parse(parts[2]), parts[3]);
-			}
-			catch
-			{
-				return default;
-			}
-		}
-
-		readonly Dictionary<string, CommitInfo> cache = new();
-		readonly List<string> pending = new();
-		readonly StringBuilder builder = new();
-		string commitId;
+		readonly Dictionary<string, CommitInfo> cache = new Dictionary<string, CommitInfo>();
+		readonly StringBuilder builder = new StringBuilder();
+		readonly string path;
+		readonly HashSet<string> pending = new HashSet<string>();
 		GUIStyle styleLastCommit;
 		bool serializeChanged;
 		DateTime lastSerializeTime;
+		bool projectDirty;
 
-		public CommitInfoUpdater()
+		public CommitInfoUpdater(string path)
 		{
-			cacheFile = Path.Combine(Application.temporaryCachePath, "commitInfo.data");
-		}
-
-		internal override void OnInitialize()
-		{
+			this.path = path;
+			cacheFile = Path.Combine(Driver.temporaryCachePath, $"{path.GetHashCode()}.data");
 			EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
 			Deserialize();
 		}
 
-		internal override void OnUpdate()
+		public void Update(string newestCommitId)
 		{
-			if (commitId != Manager.commitIdUpdater.CommitId)
+			if (newestCommitId != commitId)
 			{
 				serializeChanged = true;
 				cache.Clear();
-				Manager.Repaint();
+				projectDirty = true;
 			}
-			commitId = Manager.commitIdUpdater.CommitId;
+			commitId = newestCommitId;
 			if (pending.Count > 0)
 			{
-				var path = pending[^1];
-				pending.RemoveAt(pending.Count - 1);
-				cache[path] = Query(path);
-				serializeChanged = true;
-				Manager.Repaint();
+				var next = pending.First();
+				pending.Remove(next);
+				if (!string.IsNullOrEmpty(next))
+				{
+					cache[next] = Query(next);
+					serializeChanged = true;
+					projectDirty = true;
+				}
 			}
 			var span = DateTime.Now - lastSerializeTime;
 			if ((serializeChanged && span.TotalSeconds > 1) || span.TotalSeconds < 0)
@@ -116,18 +59,43 @@ namespace UnityTortoiseGitMenu.Editor
 			}
 		}
 
+		CommitInfo Query(string fullPath)
+		{
+			var command = $"log -1 --pretty=format:\"%H|%an|%ad|%s\" --date=iso \"{fullPath}\"";
+			try
+			{
+				Command.Execute("git.exe", command, path, out var result);
+				var parts = result.Split('|');
+				return new CommitInfo
+				{
+					//commitId = parts[0],
+					author = parts[1],
+					time = DateTime.Parse(parts[2]),
+					message = parts[3],
+					available = true
+				};
+			}
+			catch
+			{
+				return default;
+			}
+		}
+
 		void Serialize()
 		{
 			try
 			{
+				if (commitId is null) return;
 				using var file = File.Open(cacheFile, FileMode.Create);
 				using var writer = new BinaryWriter(file);
 				writer.Write(commitId);
 				var index = (int)writer.BaseStream.Position;
 				writer.Write(cache.Count);
 				var count = 0;
-				foreach (var (path, info) in cache)
+				foreach (var pair in cache)
 				{
+					var path = pair.Key;
+					var info = pair.Value;
 					if (!info.available) continue;
 					writer.Write(path);
 					info.Serialize(writer);
@@ -149,7 +117,7 @@ namespace UnityTortoiseGitMenu.Editor
 				using var file = File.Open(cacheFile, FileMode.Open);
 				using var reader = new BinaryReader(file);
 				var commitId = reader.ReadString();
-				if (commitId != Manager.commitIdUpdater.CommitId)
+				if (commitId != this.commitId && !string.IsNullOrEmpty(this.commitId))
 					return;
 				this.commitId = commitId;
 				var count = reader.ReadInt32();
@@ -183,8 +151,8 @@ namespace UnityTortoiseGitMenu.Editor
 					Debug.LogException(e);
 					return;
 				}
-				// 靠右
-				styleLastCommit ??= new() { normal = new() { textColor = Color.gray }, alignment = TextAnchor.UpperRight };
+				styleLastCommit ??= new GUIStyle
+					{ normal = new GUIStyleState { textColor = Color.gray }, alignment = TextAnchor.UpperRight };
 				var commit = GetCommitInfo(path);
 				if (commit.time != default)
 				{
@@ -216,6 +184,7 @@ namespace UnityTortoiseGitMenu.Editor
 
 		CommitInfo GetCommitInfo(string path)
 		{
+			if (!path.StartsWith(this.path)) return default;
 			if (cache.TryGetValue(path, out var commitInfo)) return commitInfo;
 			commitInfo = default;
 			cache[path] = commitInfo;

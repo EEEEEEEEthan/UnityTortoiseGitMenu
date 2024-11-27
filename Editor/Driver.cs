@@ -109,11 +109,11 @@ namespace TortoiseGitMenu.Editor
 
 		public static string PrefRawPaths
 		{
-			get => EditorPrefs.GetString(keyRawPaths) ?? "";
+			get => EditorUserSettings.GetConfigValue(keyRawPaths) ?? "";
 			set
 			{
 				RawPaths = value;
-				EditorPrefs.SetString(keyRawPaths, value);
+				EditorUserSettings.SetConfigValue(keyRawPaths, value);
 			}
 		}
 

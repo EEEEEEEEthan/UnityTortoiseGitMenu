@@ -99,40 +99,31 @@ namespace TortoiseGitMenu.Editor
 
 		public static bool PrefMarkDirtyFiles
 		{
-			get => EditorPrefs.GetBool(keyMarkDirtyFiles, true);
+			get => EditorUserSettings.GetConfigValue(keyMarkDirtyFiles) != "false";
 			set
 			{
 				MarkDirtyFiles = value;
-				if (value)
-					EditorPrefs.DeleteKey(keyMarkDirtyFiles);
-				else
-					EditorPrefs.SetBool(keyMarkDirtyFiles, MarkDirtyFiles = false);
+				EditorUserSettings.SetConfigValue(keyMarkDirtyFiles, value ? "true" : "false");
 			}
 		}
 
 		public static string PrefRawPaths
 		{
-			get => EditorPrefs.GetString(keyRawPaths, "");
+			get => EditorPrefs.GetString(keyRawPaths) ?? "";
 			set
 			{
 				RawPaths = value;
-				if (string.IsNullOrEmpty(value))
-					EditorPrefs.DeleteKey(keyRawPaths);
-				else
-					EditorPrefs.SetString(keyRawPaths, RawPaths = value);
+				EditorPrefs.SetString(keyRawPaths, value);
 			}
 		}
 
 		public static bool PrefShowLastCommit
 		{
-			get => EditorPrefs.GetBool(keyShowLastCommit, true);
+			get => EditorUserSettings.GetConfigValue(keyShowLastCommit) != "false";
 			set
 			{
 				ShowLastCommit = value;
-				if (value)
-					EditorPrefs.DeleteKey(keyShowLastCommit);
-				else
-					EditorPrefs.SetBool(keyShowLastCommit, ShowLastCommit = false);
+				EditorUserSettings.SetConfigValue(keyShowLastCommit, value ? "true" : "false");
 			}
 		}
 

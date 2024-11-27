@@ -18,13 +18,17 @@ namespace UnityTortoiseGitMenu.Editor
 		static readonly Dictionary<string, GitRepositoryRoot>
 			repositories = new Dictionary<string, GitRepositoryRoot>();
 
+		static string rawPaths = "";
+
 		static Driver()
 		{
 			var focusedWindow = EditorWindow.focusedWindow;
 			applicationPath = Application.dataPath;
 			temporaryCachePath = Application.temporaryCachePath;
-			var rawPaths = RawPaths;
-			var paths = RawPaths.Split(';');
+			rawPaths = MainThreadRawPaths;
+			if (string.IsNullOrEmpty(rawPaths))
+				ScanGitRepositories();
+			var paths = rawPaths.Split(';');
 			foreach (var path in paths)
 			{
 				if (string.IsNullOrEmpty(path)) continue;
@@ -35,6 +39,7 @@ namespace UnityTortoiseGitMenu.Editor
 
 			void update()
 			{
+				rawPaths = MainThreadRawPaths;
 				var newFocused = EditorWindow.focusedWindow;
 				if (newFocused != focusedWindow)
 				{
@@ -48,12 +53,13 @@ namespace UnityTortoiseGitMenu.Editor
 			void thread()
 			{
 				Command.Execute("git", "config --global core.quotepath false");
-				ScanGitRepositories();
+				var tobeRemoved = new List<string>();
+				var rawPaths = Driver.rawPaths;
 				while (true)
 				{
-					if (RawPaths != rawPaths)
+					if (rawPaths != Driver.rawPaths)
 					{
-						paths = (rawPaths = RawPaths).Split(';');
+						paths = (rawPaths = Driver.rawPaths).Split(';');
 						foreach (var path in paths)
 							if (!repositories.ContainsKey(path))
 								repositories[path] = new GitRepositoryRoot(path);
@@ -61,8 +67,11 @@ namespace UnityTortoiseGitMenu.Editor
 							if (!paths.Contains(path))
 							{
 								repositories[path].Dispose();
-								repositories.Remove(path);
+								tobeRemoved.Add(path);
 							}
+						foreach (var path in tobeRemoved)
+							repositories.Remove(path);
+						tobeRemoved.Clear();
 					}
 					foreach (var repository in repositories.Values)
 					{
@@ -82,7 +91,11 @@ namespace UnityTortoiseGitMenu.Editor
 			}
 		}
 
-		public static string RawPaths { get; set; } = "";
+		public static string MainThreadRawPaths
+		{
+			get => EditorPrefs.GetString(key, "");
+			set => EditorPrefs.SetString(key, value);
+		}
 
 		public static void ScanGitRepositories()
 		{
@@ -105,7 +118,7 @@ namespace UnityTortoiseGitMenu.Editor
 			foreach (var info in directory.GetDirectories(".git", SearchOption.AllDirectories))
 				if (info.Parent != null)
 					paths.Add(info.Parent.FullName.Replace("\\", "/"));
-			RawPaths = string.Join(";", paths);
+			MainThreadRawPaths = string.Join(";", paths);
 		}
 	}
 }

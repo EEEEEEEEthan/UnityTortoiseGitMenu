@@ -28,11 +28,9 @@ namespace TortoiseGitMenu.Editor
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
             EditorApplication.update += () =>
             {
-                if (projectDirty)
-                {
-                    projectDirty = false;
-                    EditorApplication.RepaintProjectWindow();
-                }
+                if (!projectDirty) return;
+                projectDirty = false;
+                EditorApplication.RepaintProjectWindow();
             };
             Deserialize();
         }

@@ -1,6 +1,6 @@
 {
   "name": "com.ethan.tortoisegitmenu",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "displayName": "TortoiseGitMenu",
   "description": "Asset item menu for tortoise git",
   "unity": "2020.3",

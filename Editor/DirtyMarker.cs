@@ -22,6 +22,7 @@ namespace TortoiseGitMenu.Editor
 
 		public void UpdateDirtyFiles()
 		{
+			if (!Driver.MarkDirtyFiles) return;
 			var newDirtyFiles = new HashSet<string>();
 			Command.Execute("git", "status --porcelain", path, out var result);
 			result = result.Replace("\"", "");
@@ -71,6 +72,7 @@ namespace TortoiseGitMenu.Editor
 
 		void Update()
 		{
+			if (!Driver.MarkDirtyFiles) return;
 			if (projectDirty)
 			{
 				projectDirty = false;
@@ -80,6 +82,7 @@ namespace TortoiseGitMenu.Editor
 
 		void OnProjectWindowItemGUI(string guid, Rect selectionRect)
 		{
+			if (!Driver.MarkDirtyFiles) return;
 			var path = AssetDatabase.GUIDToAssetPath(guid);
 			if (string.IsNullOrEmpty(path)) return;
 			try

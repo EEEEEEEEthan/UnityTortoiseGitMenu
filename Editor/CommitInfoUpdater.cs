@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
+using System.Threading;
 using UnityEditor;
 using UnityEngine;
 
@@ -40,6 +40,7 @@ namespace TortoiseGitMenu.Editor
 
 		public void Update(string newestCommitId)
 		{
+			if (!Driver.ShowLastCommit) return;
 			if (newestCommitId != commitId)
 			{
 				serializeChanged = true;
@@ -89,7 +90,7 @@ namespace TortoiseGitMenu.Editor
 					available = true
 				};
 			}
-			catch
+			catch (Exception)
 			{
 				return default;
 			}
@@ -97,6 +98,7 @@ namespace TortoiseGitMenu.Editor
 
 		void Serialize()
 		{
+			if (!Driver.ShowLastCommit) return;
 			try
 			{
 				if (commitId is null) return;
@@ -126,6 +128,7 @@ namespace TortoiseGitMenu.Editor
 
 		void Deserialize()
 		{
+			if (!Driver.ShowLastCommit) return;
 			if (!File.Exists(cacheFile)) return;
 			try
 			{
@@ -151,6 +154,7 @@ namespace TortoiseGitMenu.Editor
 
 		void OnProjectWindowItemGUI(string guid, Rect selectionRect)
 		{
+			if (!Driver.ShowLastCommit) return;
 			if (selectionRect.height <= 20)
 			{
 				var path = AssetDatabase.GUIDToAssetPath(guid);

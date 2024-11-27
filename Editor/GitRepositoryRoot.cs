@@ -45,13 +45,14 @@ namespace TortoiseGitMenu.Editor
 
 		public void UpdateThreaded()
 		{
+			if (!Driver.Enabled) return;
 			if (Disposed) throw new Exception("Disposed");
 			if (dirtyFlags.HasFlag(DirtyFlags.CommitId))
 			{
 				dirtyFlags &= ~DirtyFlags.CommitId;
 				UpdateLastCommitId();
 			}
-			if (dirtyFlags.HasFlag(DirtyFlags.DirtyFiles))
+			if (dirtyFlags.HasFlag(DirtyFlags.DirtyFiles) && Driver.MarkDirtyFiles)
 			{
 				dirtyFlags &= ~DirtyFlags.DirtyFiles;
 				dirtyMarker.UpdateDirtyFiles();
@@ -61,6 +62,7 @@ namespace TortoiseGitMenu.Editor
 
 		void UpdateLastCommitId()
 		{
+			if (!Driver.Enabled) return;
 			Command.Execute("git", "rev-parse --short HEAD", path, out var lastCommitId);
 			if (this.lastCommitId != lastCommitId)
 			{

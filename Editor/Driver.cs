@@ -11,24 +11,26 @@ namespace TortoiseGitMenu.Editor
 	[InitializeOnLoad]
 	internal static class Driver
 	{
-		const string key = "UnityTortoiseGitMenu.repositoryRoots";
+		const string keyRawPaths = "TortoiseGitMenu.repositoryRoots";
+		const string keyMarkDirtyFiles = "TortoiseGitMenu.showDirtyFiles";
+		const string keyShowLastCommit = "TortoiseGitMenu.showLastCommit";
 		public static readonly string applicationPath;
 		public static readonly string temporaryCachePath;
 
 		static readonly Dictionary<string, GitRepositoryRoot>
 			repositories = new Dictionary<string, GitRepositoryRoot>();
 
-		static string rawPaths = "";
-
 		static Driver()
 		{
 			var focusedWindow = EditorWindow.focusedWindow;
 			applicationPath = Application.dataPath;
 			temporaryCachePath = Application.temporaryCachePath;
-			rawPaths = MainThreadRawPaths;
-			if (string.IsNullOrEmpty(rawPaths))
+			RawPaths = PrefRawPaths;
+			MarkDirtyFiles = PrefMarkDirtyFiles;
+			ShowLastCommit = PrefShowLastCommit;
+			if (string.IsNullOrEmpty(RawPaths))
 				ScanGitRepositories();
-			var paths = rawPaths.Split(';');
+			var paths = RawPaths.Split(';');
 			foreach (var path in paths)
 			{
 				if (string.IsNullOrEmpty(path)) continue;
@@ -39,7 +41,6 @@ namespace TortoiseGitMenu.Editor
 
 			void update()
 			{
-				rawPaths = MainThreadRawPaths;
 				var newFocused = EditorWindow.focusedWindow;
 				if (newFocused != focusedWindow)
 				{
@@ -53,12 +54,12 @@ namespace TortoiseGitMenu.Editor
 			void thread()
 			{
 				var tobeRemoved = new List<string>();
-				var rawPaths = Driver.rawPaths;
+				var rawPaths = RawPaths;
 				while (true)
 				{
-					if (rawPaths != Driver.rawPaths)
+					if (rawPaths != RawPaths)
 					{
-						paths = (rawPaths = Driver.rawPaths).Split(';');
+						paths = (rawPaths = RawPaths).Split(';');
 						foreach (var path in paths)
 							if (!repositories.ContainsKey(path))
 								repositories[path] = new GitRepositoryRoot(path);
@@ -90,10 +91,49 @@ namespace TortoiseGitMenu.Editor
 			}
 		}
 
-		public static string MainThreadRawPaths
+		public static bool Enabled => MarkDirtyFiles || ShowLastCommit;
+
+		public static string RawPaths { get; private set; }
+		public static bool MarkDirtyFiles { get; private set; }
+		public static bool ShowLastCommit { get; private set; }
+
+		public static bool PrefMarkDirtyFiles
 		{
-			get => EditorPrefs.GetString(key, "");
-			set => EditorPrefs.SetString(key, value);
+			get => EditorPrefs.GetBool(keyMarkDirtyFiles, true);
+			set
+			{
+				MarkDirtyFiles = value;
+				if (value)
+					EditorPrefs.DeleteKey(keyMarkDirtyFiles);
+				else
+					EditorPrefs.SetBool(keyMarkDirtyFiles, MarkDirtyFiles = false);
+			}
+		}
+
+		public static string PrefRawPaths
+		{
+			get => EditorPrefs.GetString(keyRawPaths, "");
+			set
+			{
+				RawPaths = value;
+				if (string.IsNullOrEmpty(value))
+					EditorPrefs.DeleteKey(keyRawPaths);
+				else
+					EditorPrefs.SetString(keyRawPaths, RawPaths = value);
+			}
+		}
+
+		public static bool PrefShowLastCommit
+		{
+			get => EditorPrefs.GetBool(keyShowLastCommit, true);
+			set
+			{
+				ShowLastCommit = value;
+				if (value)
+					EditorPrefs.DeleteKey(keyShowLastCommit);
+				else
+					EditorPrefs.SetBool(keyShowLastCommit, ShowLastCommit = false);
+			}
 		}
 
 		public static void ScanGitRepositories()
@@ -116,7 +156,7 @@ namespace TortoiseGitMenu.Editor
 			foreach (var info in directory.GetDirectories(".git", SearchOption.AllDirectories))
 				if (info.Parent != null)
 					paths.Add(info.Parent.FullName.Replace("\\", "/"));
-			MainThreadRawPaths = string.Join(";", paths);
+			PrefRawPaths = string.Join(";", paths);
 			Debug.Log($"Scanned git repositories:\n{string.Join("\n", paths)}");
 		}
 	}

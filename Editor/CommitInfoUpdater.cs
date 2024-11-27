@@ -16,7 +16,7 @@ namespace TortoiseGitMenu.Editor
 		readonly Dictionary<string, CommitInfo> cache = new Dictionary<string, CommitInfo>();
 		readonly StringBuilder builder = new StringBuilder();
 		readonly string path;
-		readonly HashSet<string> pending = new HashSet<string>();
+		readonly List<string> pending = new List<string>();
 		GUIStyle styleLastCommit;
 		bool serializeChanged;
 		DateTime lastSerializeTime;
@@ -47,10 +47,16 @@ namespace TortoiseGitMenu.Editor
 				projectDirty = true;
 			}
 			commitId = newestCommitId;
-			if (pending.Count > 0)
 			{
-				var next = pending.First();
-				pending.Remove(next);
+				string next = null;
+				lock (pending)
+				{
+					if (pending.Count > 0)
+					{
+						next = pending[pending.Count - 1];
+						pending.RemoveAt(pending.Count - 1);
+					}
+				}
 				if (!string.IsNullOrEmpty(next))
 				{
 					cache[next] = Query(next);
@@ -120,6 +126,7 @@ namespace TortoiseGitMenu.Editor
 
 		void Deserialize()
 		{
+			if (!File.Exists(cacheFile)) return;
 			try
 			{
 				using var file = File.Open(cacheFile, FileMode.Open);
@@ -214,7 +221,12 @@ namespace TortoiseGitMenu.Editor
 			if (cache.TryGetValue(path, out var commitInfo)) return commitInfo;
 			commitInfo = default;
 			cache[path] = commitInfo;
-			pending.Add(path);
+			lock (pending)
+			{
+				var index = pending.IndexOf(path);
+				if (index >= 0) pending.RemoveAt(index);
+				pending.Add(path);
+			}
 			return commitInfo;
 		}
 	}

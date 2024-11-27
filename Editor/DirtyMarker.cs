@@ -4,7 +4,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace UnityTortoiseGitMenu.Editor
+namespace TortoiseGitMenu.Editor
 {
 	internal class DirtyMarker
 	{
@@ -17,15 +17,16 @@ namespace UnityTortoiseGitMenu.Editor
 		{
 			this.path = path;
 			EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
-			EditorApplication.update += Update; 
+			EditorApplication.update += Update;
 		}
 
 		public void UpdateDirtyFiles()
 		{
 			var newDirtyFiles = new HashSet<string>();
 			Command.Execute("git", "status --porcelain", path, out var result);
+			result = result.Replace("\"", "");
 			var lines = result.Split('\n');
-			foreach (var line in lines) 
+			foreach (var line in lines)
 				if (line.Length > 3)
 				{
 					var filePath = line.Substring(3).Replace("\\", "/");
@@ -35,7 +36,15 @@ namespace UnityTortoiseGitMenu.Editor
 					{
 						newDirtyFiles.Add(p);
 						if (p == path) break;
-						p = Path.GetDirectoryName(p);
+						try
+						{
+							p = Path.GetDirectoryName(p);
+						}
+						catch (Exception e)
+						{
+							Debug.LogException(e);
+							break;
+						}
 						if (string.IsNullOrEmpty(p)) break;
 						p = p.Replace("\\", "/");
 					}

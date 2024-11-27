@@ -6,7 +6,7 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 
-namespace UnityTortoiseGitMenu.Editor
+namespace TortoiseGitMenu.Editor
 {
 	internal class CommitInfoUpdater
 	{
@@ -27,6 +27,14 @@ namespace UnityTortoiseGitMenu.Editor
 			this.path = path;
 			cacheFile = Path.Combine(Driver.temporaryCachePath, $"{path.GetHashCode()}.data");
 			EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
+			EditorApplication.update += () =>
+			{
+				if (projectDirty)
+				{
+					projectDirty = false;
+					EditorApplication.RepaintProjectWindow();
+				}
+			};
 			Deserialize();
 		}
 

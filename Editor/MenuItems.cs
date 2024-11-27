@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 
-namespace UnityTortoiseGitMenu.Editor
+namespace TortoiseGitMenu.Editor
 {
 	internal static class MenuItems
 	{

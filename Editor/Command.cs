@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text;
-using Debug = UnityEngine.Debug;
 
-namespace UnityTortoiseGitMenu.Editor
+namespace TortoiseGitMenu.Editor
 {
 	internal static class Command
 	{
@@ -44,7 +43,7 @@ namespace UnityTortoiseGitMenu.Editor
 				output = null;
 			}
 		}
-		
+
 		public static void Execute(string fileName, string command, string workingDirectory, out string output)
 		{
 			//Debug.Log($"Executing: {fileName} {command}");
@@ -56,7 +55,7 @@ namespace UnityTortoiseGitMenu.Editor
 				UseShellExecute = false,
 				CreateNoWindow = true,
 				StandardOutputEncoding = Encoding.UTF8,
-				WorkingDirectory = workingDirectory,
+				WorkingDirectory = workingDirectory
 			};
 
 			var process = Process.Start(proc);

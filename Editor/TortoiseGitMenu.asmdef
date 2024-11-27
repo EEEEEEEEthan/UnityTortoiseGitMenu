@@ -1,6 +1,6 @@
 {
     "name": "TortoiseGitMenu",
-    "rootNamespace": "TortoiseGitMenu",
+    "rootNamespace": "",
     "references": [],
     "includePlatforms": [
         "Editor"

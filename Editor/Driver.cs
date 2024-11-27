@@ -6,7 +6,7 @@ using System.Threading;
 using UnityEditor;
 using UnityEngine;
 
-namespace UnityTortoiseGitMenu.Editor
+namespace TortoiseGitMenu.Editor
 {
 	[InitializeOnLoad]
 	internal static class Driver
@@ -52,7 +52,6 @@ namespace UnityTortoiseGitMenu.Editor
 
 			void thread()
 			{
-				Command.Execute("git", "config --global core.quotepath false");
 				var tobeRemoved = new List<string>();
 				var rawPaths = Driver.rawPaths;
 				while (true)
@@ -101,6 +100,7 @@ namespace UnityTortoiseGitMenu.Editor
 		{
 			string root;
 			var paths = new HashSet<string>();
+			Command.Execute("git", "config --global core.quotepath false");
 			Command.Execute("git", "rev-parse --show-toplevel", out var toplevel);
 			toplevel = toplevel.Trim();
 			if (string.IsNullOrEmpty(toplevel))

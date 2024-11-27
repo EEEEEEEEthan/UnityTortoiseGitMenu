@@ -1,7 +1,8 @@
 ﻿using System;
+using UnityEditor;
 using UnityEngine;
 
-namespace UnityTortoiseGitMenu.Editor
+namespace TortoiseGitMenu.Editor
 {
 	internal class GitRepositoryRoot : IDisposable
 	{
@@ -19,6 +20,7 @@ namespace UnityTortoiseGitMenu.Editor
 			commitInfoUpdater = new CommitInfoUpdater(path);
 			Command.Execute("git", "rev-parse --show-toplevel", path, out var toplevel);
 			toplevel = toplevel.Trim().Replace("\\", "/");
+			EditorApplication.projectChanged += () => dirtyFlags |= DirtyFlags.DirtyFiles;
 			if (string.IsNullOrEmpty(toplevel))
 			{
 				Debug.LogError($"Failed to get git repository root: {path}");

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace UnityTortoiseGitMenu.Editor
+namespace TortoiseGitMenu.Editor
 {
 	internal struct CommitInfo
 	{

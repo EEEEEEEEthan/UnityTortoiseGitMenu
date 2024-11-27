@@ -51,7 +51,6 @@ namespace TortoiseGitMenu.Editor
 		[MenuItem("Assets/Git/Commit", priority = 11)]
 		static void Commit()
 		{
-			Debug.LogError(Path);
 			Command.Execute("TortoiseGitProc.exe", $"/command:commit /path:\"{Path}\"");
 		}
 

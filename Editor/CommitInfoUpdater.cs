@@ -97,7 +97,10 @@ namespace TortoiseGitMenu.Editor
             }
             catch (Exception)
             {
-                return default;
+                return new CommitInfo
+                {
+                    available = true
+                };
             }
         }
 
@@ -126,9 +129,9 @@ namespace TortoiseGitMenu.Editor
                 writer.Seek(index, SeekOrigin.Begin);
                 writer.Write(count);
             }
-            catch (Exception e)
+            catch
             {
-                Debug.LogException(e);
+                // ignored
             }
         }
 
@@ -152,9 +155,9 @@ namespace TortoiseGitMenu.Editor
                     cache[path] = info;
                 }
             }
-            catch (Exception e)
+            catch
             {
-                Debug.LogException(e);
+                // ignored
             }
         }
 

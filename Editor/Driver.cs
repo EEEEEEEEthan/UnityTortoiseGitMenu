@@ -149,5 +149,11 @@ namespace TortoiseGitMenu.Editor
             PrefRawPaths = string.Join(";", paths);
             Debug.Log($"Scanned git repositories:\n{string.Join("\n", paths)}");
         }
+
+        public static void Refresh()
+        {
+            foreach (var repository in repositories.Values)
+                repository.Refresh();
+        }
     }
 }

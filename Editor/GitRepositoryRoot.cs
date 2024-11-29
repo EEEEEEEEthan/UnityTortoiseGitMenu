@@ -33,6 +33,13 @@ namespace TortoiseGitMenu.Editor
         }
 
         public bool Disposed { get; private set; }
+        
+        public void Refresh()
+        {
+            dirtyFlags |= DirtyFlags.CommitId;
+            dirtyFlags |= DirtyFlags.DirtyFiles;
+            commitInfoUpdater.Refresh();
+        }
 
         public void Dispose()
         {

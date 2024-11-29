@@ -72,10 +72,11 @@ namespace TortoiseGitMenu.Editor
             Command.Execute("TortoiseGitProc.exe", $"/command:revert /path:\"{Path}\"");
         }
         
-        [MenuItem("Assets/TortoiseGit/Scan Git Repositories", priority = 100)]
-        private static void ScanGitRepositories()
+        [MenuItem("Assets/TortoiseGit/Refresh Project _F5", priority = 100)]
+        private static void RefreshProject()
         {
             Driver.ScanGitRepositories();
+            Driver.Refresh();
         }
     }
 }

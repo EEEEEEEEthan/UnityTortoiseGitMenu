@@ -34,6 +34,12 @@ namespace TortoiseGitMenu.Editor
             };
             Deserialize();
         }
+        
+        public void Refresh()
+        {
+            cache.Clear();
+            projectDirty = true;
+        }
 
         public void Update(string newestCommitId)
         {

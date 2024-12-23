@@ -2,25 +2,26 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using WebSocketSharp;
 
 namespace TortoiseGitMenu.Editor
 {
 	internal static class MenuItems
 	{
+		static string WorkDir => Directory.GetParent(Application.dataPath).FullName;
+
 		static string Root
 		{
 			get
 			{
 				var selectedObject = Selection.activeObject;
-				var workDir = Directory.GetParent(Application.dataPath).FullName;
+				if (!selectedObject) return WorkDir;
 				var path = AssetDatabase.GetAssetPath(selectedObject);
-				path = workDir + "/" + path;
-				Command.Execute("git", $"rev-parse --show-toplevel {path}", out var toplevel);
-				toplevel = toplevel.Trim().Split('\n').Last().Trim();
-				if (string.IsNullOrEmpty(toplevel))
-					return Application.dataPath;
-				return toplevel.Trim();
+				if (string.IsNullOrEmpty(path)) return WorkDir;
+				path = WorkDir + "/" + path;
+				// if is file
+				if (File.Exists(path)) path = Directory.GetParent(path).FullName;
+				Command.Execute("git", "rev-parse --show-toplevel", path, out var toplevel);
+				return toplevel.Trim().Split('\n').Last();
 			}
 		}
 
@@ -29,15 +30,14 @@ namespace TortoiseGitMenu.Editor
 			get
 			{
 				var selectedObject = Selection.activeObject;
-				var workDir = Directory.GetParent(Application.dataPath).FullName;
 				var path = AssetDatabase.GetAssetPath(selectedObject);
-				path = workDir + "/" + path;
+				path = WorkDir + "/" + path;
 				if (string.IsNullOrEmpty(path))
 				{
 					// toplevel
 					Command.Execute("git", "rev-parse --show-toplevel", out var toplevel);
 					if (string.IsNullOrEmpty(toplevel))
-						return workDir;
+						return WorkDir;
 					return toplevel.Trim();
 				}
 				return path;

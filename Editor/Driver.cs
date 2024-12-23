@@ -39,11 +39,21 @@ namespace TortoiseGitMenu.Editor
 			if (string.IsNullOrEmpty(RawPaths))
 				ScanGitRepositories();
 			var paths = RawPaths.Split(';');
+			var availablePaths = new List<string>();
 			foreach (var path in paths)
 			{
 				if (string.IsNullOrEmpty(path)) continue;
-				repositories[path] = new GitRepositoryRoot(path);
+				try
+				{
+					repositories[path] = new GitRepositoryRoot(path);
+					availablePaths.Add(path);
+				}
+				catch (Exception e)
+				{
+					Debug.LogException(e);
+				}
 			}
+			RawPaths = string.Join(";", availablePaths);
 
 			Task.Run(Thread);
 			EditorApplication.update += Update;

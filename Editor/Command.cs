@@ -5,14 +5,16 @@ namespace TortoiseGitMenu.Editor
 {
 	internal static class Command
 	{
-		public static void Execute(string fileName, string command)
+		public static void Execute(string fileName, string command, string workDir = "")
 		{
+			if (string.IsNullOrEmpty(workDir)) workDir = System.IO.Directory.GetCurrentDirectory();
 			var proc = new ProcessStartInfo
 			{
 				FileName = fileName,
 				Arguments = command,
 				UseShellExecute = false,
-				CreateNoWindow = true
+				CreateNoWindow = true,
+				WorkingDirectory = workDir,
 			};
 			Process.Start(proc);
 		}

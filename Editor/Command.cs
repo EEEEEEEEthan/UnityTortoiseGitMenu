@@ -27,7 +27,7 @@ namespace TortoiseGitMenu.Editor
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
                 CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8
+                StandardOutputEncoding = Encoding.UTF8,
             };
 
             var process = Process.Start(proc);

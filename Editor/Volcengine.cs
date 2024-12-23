@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using Unity.Plastic.Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -12,13 +11,16 @@ namespace TortoiseGitMenu.Editor
 		/// <summary>
 		///     详情见https://www.volcengine.com/docs/82379/1298454
 		/// </summary>
+		[Serializable]
 		struct Result
 		{
+			[Serializable]
 			public struct Message
 			{
 				public string content;
 			}
 
+			[Serializable]
 			public struct Choice
 			{
 				public Message message;
@@ -27,28 +29,43 @@ namespace TortoiseGitMenu.Editor
 			public Choice[] choices;
 		}
 
+		[Serializable]
+		struct Request
+		{
+			[Serializable]
+			public struct MessageParam
+			{
+				public string role;
+				public string content;
+			}
+
+			public string model;
+			public MessageParam[] messages;
+		}
+
 		public static void GetDiffMessage(string root, string path, Action<string> callback)
 		{
 			const string url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
 			Command.Execute("git", $"--git-dir={root}/.git --work-tree={path} diff", out var output);
-			var msg = new
+			var msg = new Request
 			{
 				model = Driver.DoubaoModelName,
 				messages = new[]
 				{
-					new
+					new Request.MessageParam
 					{
 						role = "system",
-						content = Driver.PromptForCommit ?? "",
+						content = Driver.PromptForCommit ?? ""
 					},
-					new
+					new Request.MessageParam
 					{
 						role = "user",
 						content = output
 					}
 				}
 			};
-			var json = JsonConvert.SerializeObject(msg);
+			//var json = JsonConvert.SerializeObject(msg);
+			var json = JsonUtility.ToJson(msg);
 			var request = new UnityWebRequest(url, "POST");
 			request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
 			request.downloadHandler = new DownloadHandlerBuffer();
@@ -64,7 +81,7 @@ namespace TortoiseGitMenu.Editor
 				if (request.result != UnityWebRequest.Result.Success)
 					callback?.Invoke("生成日志失败: " + request.result);
 				var text = request.downloadHandler.text;
-				var result = JsonConvert.DeserializeObject<Result>(text);
+				var result = JsonUtility.FromJson<Result>(text);
 				callback?.Invoke(result.choices[0].message.content);
 			}
 		}

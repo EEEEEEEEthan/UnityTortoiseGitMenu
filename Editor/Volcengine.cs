@@ -46,7 +46,7 @@ namespace TortoiseGitMenu.Editor
 		public static void GetDiffMessage(string root, string path, Action<string> callback)
 		{
 			const string url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
-			Command.Execute("git", $"--git-dir={root}/.git --work-tree={path} diff", out var output);
+			Command.Execute("git", $"diff {path}", out var output, root);
 			var msg = new Request
 			{
 				model = Driver.DoubaoModelName,

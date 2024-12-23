@@ -1,5 +1,8 @@
-﻿using UnityEditor;
+﻿using System.IO;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
+using WebSocketSharp;
 
 namespace TortoiseGitMenu.Editor
 {
@@ -10,18 +13,14 @@ namespace TortoiseGitMenu.Editor
 			get
 			{
 				var selectedObject = Selection.activeObject;
+				var workDir = Directory.GetParent(Application.dataPath).FullName;
 				var path = AssetDatabase.GetAssetPath(selectedObject);
-				if (string.IsNullOrEmpty(path))
-				{
-					// toplevel
-					Command.Execute("git", "rev-parse --show-toplevel", out var toplevel);
-					if (string.IsNullOrEmpty(toplevel))
-						return Application.dataPath;
-					return toplevel.Trim();
-				}
-				path = Application.dataPath + path.Substring("Assets".Length);
-
-				return path;
+				path = workDir + "/" + path;
+				Command.Execute("git", $"rev-parse --show-toplevel {path}", out var toplevel);
+				toplevel = toplevel.Trim().Split('\n').Last().Trim();
+				if (string.IsNullOrEmpty(toplevel))
+					return Application.dataPath;
+				return toplevel.Trim();
 			}
 		}
 
@@ -30,17 +29,17 @@ namespace TortoiseGitMenu.Editor
 			get
 			{
 				var selectedObject = Selection.activeObject;
+				var workDir = Directory.GetParent(Application.dataPath).FullName;
 				var path = AssetDatabase.GetAssetPath(selectedObject);
+				path = workDir + "/" + path;
 				if (string.IsNullOrEmpty(path))
 				{
 					// toplevel
 					Command.Execute("git", "rev-parse --show-toplevel", out var toplevel);
 					if (string.IsNullOrEmpty(toplevel))
-						return Application.dataPath;
+						return workDir;
 					return toplevel.Trim();
 				}
-				path = Application.dataPath + path.Substring("Assets".Length);
-
 				return path;
 			}
 		}

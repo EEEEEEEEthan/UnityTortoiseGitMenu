@@ -35,6 +35,7 @@ namespace TortoiseGitMenu.Editor
 				var prefix = line.Substring(0, 3);
 				switch (prefix)
 				{
+                    case "RM ": // renamed
 					case "R  ": // renamed
 					{
 						var content = line.Substring(3);

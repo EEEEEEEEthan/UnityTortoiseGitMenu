@@ -14,10 +14,22 @@ namespace TortoiseGitMenu.Editor
 		const string keyRawPaths = "TortoiseGitMenu.repositoryRoots";
 		const string keyMarkDirtyFiles = "TortoiseGitMenu.showDirtyFiles";
 		const string keyShowLastCommit = "TortoiseGitMenu.showLastCommit";
-		const string keyUseDoubaoAI = "TortoiseGitMenu.useDoubaoAI";
+		const string keyUseAI = "TortoiseGitMenu.useAI";
+		const string keyAIProvider = "TortoiseGitMenu.aiProvider";
 		const string keyDoubaoModelName = "TortoiseGitMenu.doubaoModelName";
 		const string keyDoubaoAPIKey = "TortoiseGitMenu.doubaoAPIKey";
+		const string keyOpenAIModelName = "TortoiseGitMenu.OpenAIModelName";
+		const string keyOpenAIAPIKey = "TortoiseGitMenu.OpenAIAPIKey";
+		const string keyDeepSeekModelName = "TortoiseGitMenu.deepSeekModelName";
+		const string keyDeepSeekAPIKey = "TortoiseGitMenu.deepSeekAPIKey";
 		const string keyPromptForCommit = "TortoiseGitMenu.promptForCommit";
+		
+		public enum AIProvider
+		{
+			DouBao,
+			DeepSeek,
+			OpenAI
+		}
 
 		public const string defaultPromptForCommit =
 			"你是专业的Unity游戏开发者，现你需要对下面的git diff输出，产生一个git提交日志。日志格式为不超过50字的一句话+回车+回车+200字以内的详细描述。";
@@ -130,23 +142,90 @@ namespace TortoiseGitMenu.Editor
 				EditorUserSettings.SetConfigValue(keyShowLastCommit, value ? "true" : "false");
 			}
 		}
-
-		public static bool UseDoubaoAI
+		
+		public static bool UseAI
 		{
-			get => EditorUserSettings.GetConfigValue(keyUseDoubaoAI) == "true";
-			set => EditorUserSettings.SetConfigValue(keyUseDoubaoAI, value ? "true" : "false");
+			get => EditorUserSettings.GetConfigValue(keyUseAI) == "true";
+			set => EditorUserSettings.SetConfigValue(keyUseAI, value ? "true" : "false");
 		}
 
-		public static string DoubaoModelName
+		public static AIProvider provider
 		{
-			get => EditorUserSettings.GetConfigValue(keyDoubaoModelName) ?? "";
-			set => EditorUserSettings.SetConfigValue(keyDoubaoModelName, value);
+			get
+			{
+				return (AIProvider)Enum.Parse(typeof(AIProvider), EditorUserSettings.GetConfigValue(keyAIProvider) ?? AIProvider.DouBao.ToString());
+			}
+			set => EditorUserSettings.SetConfigValue(keyAIProvider, value.ToString());
 		}
-
-		public static string DoubaoAPIKey
+		
+		public static string ModelName
 		{
-			get => EditorUserSettings.GetConfigValue(keyDoubaoAPIKey) ?? "";
-			set => EditorUserSettings.SetConfigValue(keyDoubaoAPIKey, value);
+			get
+			{
+				switch (provider)
+				{
+					case AIProvider.DouBao:
+						return EditorUserSettings.GetConfigValue(keyDoubaoModelName) ?? "";
+						break;
+					case AIProvider.DeepSeek:
+						return EditorUserSettings.GetConfigValue(keyDeepSeekModelName) ?? "";
+						break;
+					case AIProvider.OpenAI:
+						return EditorUserSettings.GetConfigValue(keyOpenAIModelName) ?? "";
+						break;
+				}
+				return string.Empty;
+			}
+			set
+			{
+				switch (provider)
+				{
+					case AIProvider.DouBao:
+						EditorUserSettings.SetConfigValue(keyDoubaoModelName, value);
+						break;
+					case AIProvider.DeepSeek:
+						EditorUserSettings.SetConfigValue(keyDeepSeekModelName, value);
+						break;
+					case AIProvider.OpenAI:
+						EditorUserSettings.SetConfigValue(keyOpenAIModelName, value);
+						break;
+				}
+			}
+		}
+		
+		public static string APIKey
+		{
+			get
+			{
+				switch (provider)
+				{
+					case AIProvider.DouBao:
+						return EditorUserSettings.GetConfigValue(keyDoubaoAPIKey) ?? "";
+						break;
+					case AIProvider.DeepSeek:
+						return EditorUserSettings.GetConfigValue(keyDeepSeekAPIKey) ?? "";
+						break;
+					case AIProvider.OpenAI:
+						return EditorUserSettings.GetConfigValue(keyOpenAIAPIKey) ?? "";
+						break;
+				}
+				return string.Empty;
+			}
+			set
+			{
+				switch (provider)
+				{
+					case AIProvider.DouBao:
+						EditorUserSettings.SetConfigValue(keyDoubaoAPIKey, value);
+						break;
+					case AIProvider.DeepSeek:
+						EditorUserSettings.SetConfigValue(keyDeepSeekAPIKey, value);
+						break;
+					case AIProvider.OpenAI:
+						EditorUserSettings.SetConfigValue(keyOpenAIAPIKey, value);
+						break;
+				}
+			}
 		}
 
 		public static string PromptForCommit

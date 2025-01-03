@@ -43,13 +43,28 @@ namespace TortoiseGitMenu.Editor
 			public MessageParam[] messages;
 		}
 
+		const string DouBaoUrl = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+		const string OpenAIUrl = "https://api.openai.com/v1/chat/completions";
+		const string DeepSeekUrl = "https://api.deepseek.com/chat/completions";
 		public static void GetDiffMessage(string root, string path, Action<string> callback)
 		{
-			const string url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+			string url = "";
+			switch (Driver.provider)
+			{
+				case Driver.AIProvider.DouBao:
+					url = DouBaoUrl;
+					break;
+				case Driver.AIProvider.DeepSeek:
+					url = DeepSeekUrl;
+					break;
+				case Driver.AIProvider.OpenAI:
+					url = OpenAIUrl;
+					break;
+			}
 			Command.Execute("git", $"diff {path}", out var output, root);
 			var msg = new Request
 			{
-				model = Driver.DoubaoModelName,
+				model = Driver.ModelName,
 				messages = new[]
 				{
 					new Request.MessageParam
@@ -70,7 +85,7 @@ namespace TortoiseGitMenu.Editor
 			request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
 			request.downloadHandler = new DownloadHandlerBuffer();
 			request.SetRequestHeader("Content-Type", "application/json");
-			request.SetRequestHeader("Authorization", $"Bearer {Driver.DoubaoAPIKey}");
+			request.SetRequestHeader("Authorization", $"Bearer {Driver.APIKey}");
 			var operation = request.SendWebRequest();
 			EditorApplication.update += onUpdate;
 

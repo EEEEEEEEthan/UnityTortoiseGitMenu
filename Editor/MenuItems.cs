@@ -71,7 +71,7 @@ namespace TortoiseGitMenu.Editor
 		[MenuItem("Assets/TortoiseGit/Commit", priority = 51)]
 		static void Commit()
 		{
-			if (Driver.UseDoubaoAI)
+			if (Driver.UseAI)
 				Volcengine.GetDiffMessage(Root, Path, message =>
 				{
 					if (string.IsNullOrEmpty(Path))

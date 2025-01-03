@@ -16,24 +16,31 @@ namespace TortoiseGitMenu.Editor
 					var changed = false;
 					var markDirtyFiles = EditorGUILayout.Toggle("Mark Dirty Files", Driver.PrefMarkDirtyFiles);
 					var showLastCommit = EditorGUILayout.Toggle("Show Last Commit", Driver.PrefShowLastCommit);
-					var useDoubaoAI = EditorGUILayout.Toggle("Use Doubao AI", Driver.UseDoubaoAI);
-					if (useDoubaoAI)
+					var useAI = EditorGUILayout.Toggle("Use AI", Driver.UseAI);
+					if (useAI)
 					{
-						var doubaoModel = EditorGUILayout.TextField("Doubao Model", Driver.DoubaoModelName);
-						var doubaoAPIKey = EditorGUILayout.TextField("Doubao API Key", Driver.DoubaoAPIKey);
+						var aiProvider = (Driver.AIProvider)EditorGUILayout.EnumPopup("AI Provider", Driver.provider);
+						var model = EditorGUILayout.TextField("Model", Driver.ModelName);
+						var APIKey = EditorGUILayout.TextField("API Key", Driver.APIKey);
+						if (!Driver.provider.Equals(aiProvider))
+						{
+							Driver.provider = aiProvider;
+							changed = true;
+							model = EditorGUILayout.TextField("Model", Driver.ModelName);
+							APIKey = EditorGUILayout.TextField("API Key", Driver.APIKey);
+						}
 						EditorGUILayout.LabelField("Prompt for Commit");
 						var promptForCommit = EditorGUILayout.TextArea(Driver.PromptForCommit, GUILayout.Height(100));
 						if (GUILayout.Button("revert")) promptForCommit = Driver.defaultPromptForCommit;
-
-						if (Driver.DoubaoModelName != doubaoModel)
+						if (Driver.ModelName != model)
 						{
-							Driver.DoubaoModelName = doubaoModel;
+							Driver.ModelName = model;
 							changed = true;
 						}
 
-						if (Driver.DoubaoAPIKey != doubaoAPIKey)
+						if (Driver.APIKey != APIKey)
 						{
-							Driver.DoubaoAPIKey = doubaoAPIKey;
+							Driver.APIKey = APIKey;
 							changed = true;
 						}
 
@@ -56,9 +63,9 @@ namespace TortoiseGitMenu.Editor
 						changed = true;
 					}
 
-					if (Driver.UseDoubaoAI != useDoubaoAI)
+					if (Driver.UseAI != useAI)
 					{
-						Driver.UseDoubaoAI = useDoubaoAI;
+						Driver.UseAI = useAI;
 						changed = true;
 					}
 

@@ -82,7 +82,6 @@ namespace TortoiseGitMenu.Editor
         private void UpdateLastCommitId()
         {
             if (!Driver.Enabled) return;
-            Debug.Log($"UpdateLastCommitId: {path}");
             Command.Execute("git", "rev-parse --short HEAD", path, out var lastCommitId);
             if (this.lastCommitId == lastCommitId) return;
             this.lastCommitId = lastCommitId;

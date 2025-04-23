@@ -26,7 +26,7 @@ namespace TortoiseGitMenu.Editor
         public CommitInfoUpdater(string path)
         {
             this.path = path;
-            pathAssets ??= Path.Combine(path, "Assets").Replace('\\', '/');
+            pathAssets ??= Application.dataPath.Replace('\\', '/');
             cacheFile = Path.Combine(Driver.temporaryCachePath, $"{path.GetHashCode()}.data");
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
             EditorApplication.update += () =>

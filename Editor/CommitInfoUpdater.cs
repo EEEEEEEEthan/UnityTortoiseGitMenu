@@ -15,15 +15,18 @@ namespace TortoiseGitMenu.Editor
         private readonly Dictionary<string, CommitInfo> cache = new Dictionary<string, CommitInfo>();
         private readonly string path;
         private readonly List<string> pending = new List<string>();
+        private string pathAssets;
         private string commitId;
         private DateTime lastSerializeTime;
         private bool projectDirty;
         private bool serializeChanged;
         private GUIStyle styleLastCommit;
+        private string repoAndBranchName;
 
         public CommitInfoUpdater(string path)
         {
             this.path = path;
+            pathAssets ??= Path.Combine(path, "Assets").Replace('\\', '/');
             cacheFile = Path.Combine(Driver.temporaryCachePath, $"{path.GetHashCode()}.data");
             EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
             EditorApplication.update += () =>
@@ -34,48 +37,55 @@ namespace TortoiseGitMenu.Editor
             };
             Deserialize();
         }
-        
+
         public void Refresh()
         {
             cache.Clear();
             projectDirty = true;
         }
 
-        public void Update(string newestCommitId)
+        public void Update(string newestCommitId, string repoAndBranchName)
         {
-            if (!Driver.ShowLastCommit) return;
-            if (newestCommitId != commitId)
+            if (Driver.ShowLastCommit)
             {
-                serializeChanged = true;
-                cache.Clear();
-                projectDirty = true;
-            }
 
-            commitId = newestCommitId;
-            {
-                string next = null;
-                lock (pending)
+                if (newestCommitId != commitId)
                 {
-                    if (pending.Count > 0)
-                    {
-                        next = pending[pending.Count - 1];
-                        pending.RemoveAt(pending.Count - 1);
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(next))
-                {
-                    cache[next] = Query(next);
                     serializeChanged = true;
+                    cache.Clear();
                     projectDirty = true;
                 }
+
+                commitId = newestCommitId;
+                {
+                    string next = null;
+                    lock (pending)
+                    {
+                        if (pending.Count > 0)
+                        {
+                            next = pending[pending.Count - 1];
+                            pending.RemoveAt(pending.Count - 1);
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(next))
+                    {
+                        cache[next] = Query(next);
+                        serializeChanged = true;
+                        projectDirty = true;
+                    }
+                }
+                var span = DateTime.Now - lastSerializeTime;
+                if ((serializeChanged && span.TotalSeconds > 1) || span.TotalSeconds < 0)
+                {
+                    serializeChanged = false;
+                    lastSerializeTime = DateTime.Now;
+                    Serialize();
+                }
             }
-            var span = DateTime.Now - lastSerializeTime;
-            if ((serializeChanged && span.TotalSeconds > 1) || span.TotalSeconds < 0)
+            if (Driver.ShowBranchName)
             {
-                serializeChanged = false;
-                lastSerializeTime = DateTime.Now;
-                Serialize();
+                this.repoAndBranchName = repoAndBranchName;
             }
         }
 
@@ -180,8 +190,19 @@ namespace TortoiseGitMenu.Editor
                     return;
                 }
 
+
                 styleLastCommit ??= new GUIStyle
-                    { normal = new GUIStyleState { textColor = Color.gray }, alignment = TextAnchor.UpperRight };
+                { normal = new GUIStyleState { textColor = Color.gray }, alignment = TextAnchor.UpperRight };
+                if (path.Equals(pathAssets, StringComparison.OrdinalIgnoreCase) || path.Equals(this.path, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!string.IsNullOrEmpty(repoAndBranchName))
+                    {
+                        GUI.Label(selectionRect, repoAndBranchName, styleLastCommit);
+                    }
+
+                    return;
+                }
+
                 var commit = GetCommitInfo(path);
                 builder.Clear();
                 if (commit.time != default)
@@ -246,5 +267,6 @@ namespace TortoiseGitMenu.Editor
 
             return commitInfo;
         }
+
     }
 }

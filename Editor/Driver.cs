@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace TortoiseGitMenu.Editor
 {
@@ -82,6 +83,7 @@ namespace TortoiseGitMenu.Editor
 
 			void Thread()
 			{
+				Assert.IsTrue(System.Threading.Thread.CurrentThread.ManagedThreadId != 1);
 				var tobeRemoved = new List<string>();
 				var rawPaths = RawPaths;
 				while (true)

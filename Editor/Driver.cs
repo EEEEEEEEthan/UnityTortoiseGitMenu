@@ -15,6 +15,7 @@ namespace TortoiseGitMenu.Editor
 		const string keyRawPaths = "TortoiseGitMenu.repositoryRoots";
 		const string keyMarkDirtyFiles = "TortoiseGitMenu.showDirtyFiles";
 		const string keyShowLastCommit = "TortoiseGitMenu.showLastCommit";
+		const string keyShowRepoAndBranchName = "TortoiseGitMenu.showRepoAndBranchName";
 		const string keyUseAI = "TortoiseGitMenu.useAI";
 		const string keyAIProvider = "TortoiseGitMenu.aiProvider";
 		const string keyDoubaoModelName = "TortoiseGitMenu.doubaoModelName";
@@ -24,7 +25,7 @@ namespace TortoiseGitMenu.Editor
 		const string keyDeepSeekModelName = "TortoiseGitMenu.deepSeekModelName";
 		const string keyDeepSeekAPIKey = "TortoiseGitMenu.deepSeekAPIKey";
 		const string keyPromptForCommit = "TortoiseGitMenu.promptForCommit";
-		
+
 		public enum AIProvider
 		{
 			DouBao,
@@ -49,6 +50,8 @@ namespace TortoiseGitMenu.Editor
 			RawPaths = PrefRawPaths;
 			MarkDirtyFiles = PrefMarkDirtyFiles;
 			ShowLastCommit = PrefShowLastCommit;
+			ShowBranchName = PrefShowRepoAndBranchName;
+
 			if (string.IsNullOrEmpty(RawPaths))
 				ScanGitRepositories();
 			var paths = RawPaths.Split(';');
@@ -124,6 +127,7 @@ namespace TortoiseGitMenu.Editor
 		public static bool Enabled => MarkDirtyFiles || ShowLastCommit;
 		public static bool MarkDirtyFiles { get; private set; }
 		public static bool ShowLastCommit { get; private set; }
+		public static bool ShowBranchName { get; private set; }
 
 		public static bool PrefMarkDirtyFiles
 		{
@@ -144,7 +148,17 @@ namespace TortoiseGitMenu.Editor
 				EditorUserSettings.SetConfigValue(keyShowLastCommit, value ? "true" : "false");
 			}
 		}
-		
+
+		public static bool PrefShowRepoAndBranchName
+		{
+			get => EditorUserSettings.GetConfigValue(keyShowRepoAndBranchName) != "false";
+			set
+			{
+				ShowBranchName = value;
+				EditorUserSettings.SetConfigValue(keyShowRepoAndBranchName, value ? "true" : "false");
+			}
+		}
+
 		public static bool UseAI
 		{
 			get => EditorUserSettings.GetConfigValue(keyUseAI) == "true";

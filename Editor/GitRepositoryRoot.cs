@@ -12,6 +12,7 @@ namespace TortoiseGitMenu.Editor
         private DirtyFlags dirtyFlags;
 
         private string lastCommitId;
+        private string repoAndBranchName;
 
         public GitRepositoryRoot(string path)
         {
@@ -30,6 +31,7 @@ namespace TortoiseGitMenu.Editor
 
             dirtyFlags |= DirtyFlags.CommitId;
             dirtyFlags |= DirtyFlags.DirtyFiles;
+            dirtyFlags |= DirtyFlags.BranchName;
         }
 
         public bool Disposed { get; private set; }
@@ -38,6 +40,7 @@ namespace TortoiseGitMenu.Editor
         {
             dirtyFlags |= DirtyFlags.CommitId;
             dirtyFlags |= DirtyFlags.DirtyFiles;
+            dirtyFlags |= DirtyFlags.BranchName;
             commitInfoUpdater.Refresh();
         }
 
@@ -67,7 +70,13 @@ namespace TortoiseGitMenu.Editor
                 dirtyMarker.UpdateDirtyFiles();
             }
 
-            commitInfoUpdater.Update(lastCommitId);
+            if (dirtyFlags.HasFlag(DirtyFlags.BranchName))
+            {
+                dirtyFlags &= ~DirtyFlags.BranchName;
+                UpdateRepositoriesAndBranchName();
+            }
+
+            commitInfoUpdater.Update(lastCommitId, repoAndBranchName);
         }
 
         private void UpdateLastCommitId()
@@ -79,11 +88,64 @@ namespace TortoiseGitMenu.Editor
             dirtyFlags |= DirtyFlags.DirtyFiles;
         }
 
+        private void UpdateRepositoriesAndBranchName()
+        {
+            if (!Driver.Enabled) return;
+            var branchName = GetBranchName();
+            
+            var repoName = GetRepositoryName();
+            var repoAndBranchName = string.Empty;
+            if (!string.IsNullOrEmpty(repoName))
+            {
+                repoAndBranchName = $"{repoName}({branchName})";
+            }
+            else
+            {
+                repoAndBranchName = branchName;
+            }
+            if (this.repoAndBranchName == repoAndBranchName) return;
+            this.repoAndBranchName = repoAndBranchName;
+            dirtyFlags |= DirtyFlags.DirtyFiles;
+        }
+
+        private string GetBranchName()
+        {
+            var command = $"rev-parse --abbrev-ref HEAD";
+            Command.Execute("git.exe", command, path, out var branchName);
+            branchName = branchName.Trim();
+            
+            return branchName;
+        }
+        
+        private string GetRepositoryName()
+        {
+            var command = "config --get remote.origin.url";
+            Command.Execute("git.exe", command, path, out var remoteUrl);
+            remoteUrl = remoteUrl.Trim();
+            
+            if (string.IsNullOrEmpty(remoteUrl))
+                return string.Empty;
+                
+            // 从URL中提取仓库名
+            string repoName;
+            if (remoteUrl.EndsWith(".git"))
+                remoteUrl = remoteUrl.Substring(0, remoteUrl.Length - 4);
+            
+            var lastSlashIndex = remoteUrl.LastIndexOf('/');
+            if (lastSlashIndex >= 0)
+                repoName = remoteUrl.Substring(lastSlashIndex + 1);
+            else
+                repoName = remoteUrl;
+                
+            return repoName;
+        }
+
         [Flags]
         private enum DirtyFlags
         {
             CommitId = 1 << 0,
-            DirtyFiles = 1 << 1
+            DirtyFiles = 1 << 1,
+            BranchName = 1 << 2,
         }
     }
 }

@@ -16,6 +16,8 @@ namespace TortoiseGitMenu.Editor
 					var changed = false;
 					var markDirtyFiles = EditorGUILayout.Toggle("Mark Dirty Files", Driver.PrefMarkDirtyFiles);
 					var showLastCommit = EditorGUILayout.Toggle("Show Last Commit", Driver.PrefShowLastCommit);
+					var showRepoAndBranchName = EditorGUILayout.Toggle(new GUIContent("Show Repo and Branch Name", "Display the repository name and branch name in the Assets directory and repository root directory."), Driver.PrefShowRepoAndBranchName);
+
 					var useAI = EditorGUILayout.Toggle("Use AI", Driver.UseAI);
 					if (useAI)
 					{
@@ -63,6 +65,12 @@ namespace TortoiseGitMenu.Editor
 						changed = true;
 					}
 
+					if (Driver.PrefShowRepoAndBranchName != showRepoAndBranchName)
+					{
+						Driver.PrefShowRepoAndBranchName = showRepoAndBranchName;
+						changed = true;
+					}
+
 					if (Driver.UseAI != useAI)
 					{
 						Driver.UseAI = useAI;
@@ -82,7 +90,8 @@ namespace TortoiseGitMenu.Editor
 					"Files",
 					"Show",
 					"Last",
-					"Commit"
+					"Commit",
+					"BranchName"
 				}
 			};
 
